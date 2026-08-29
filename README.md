@@ -21,7 +21,7 @@ To achieve strict micro-segmentation and "never trust" principles, we propose a 
   - Generated 2048-bit RSA keys and locked down the central router with a strict `DENY ALL` ACL.
   - Verified baseline connectivity (Ping) and confirmed the firewall actively blocks unauthorized SSH attempts.
 
-- * **August 29, 2026 - Session 3: Hardware Authentication & Simulation Boundaries**
+- **August 29, 2026 - Session 3: Hardware Authentication & Simulation Boundaries**
   * Finalized the Single Board Computer (SBC) logic gate, successfully mapping physical end-device interactions (Toggle Switch + Push Button) to logical outputs.
   * **Architectural Constraint Identified:** Cisco Packet Tracer's internal Python engine (Skulpt) restricts the execution of advanced networking libraries. Attempting to deploy the UDP payload generation resulted in: `NotImplementedError: socket is not yet implemented in Skulpt`.
   * **Review-1 Pivot & Strategy:** Due to the simulator's inability to compile raw network sockets, the physical LED on `D3` now acts as the visual proxy for the SPA payload dispatch. 
