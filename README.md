@@ -33,3 +33,9 @@ To achieve strict micro-segmentation and "never trust" principles, we propose a 
   - Implemented the ZTN Router (`spaServer.py`) to operate in a strict default-drop posture, listening silently on a dormant UDP port to intercept, decrypt, and validate incoming SPA payloads.
   - Built the Edge Controller client (`spaClient.py`) with a mathematically simulated hardware logic gate. Enforced causal dependency by hard-blocking digital payload generation unless physical sensor authorization is simultaneously achieved.
   - Successfully executed and validated the CP-SPA handshake on the local testbed, proving the router can dynamically update its Access Control List (ACL) upon verifiable physical interaction.
+
+- **September 1, 2026 - Session 5: Adversarial Machine Learning (AML) Attack Simulation**
+  - Developed a standalone attack simulation (`attackSim.py`) to empirically validate the hardware-gated defense against a modeled zero-day/memory-scraping intrusion.
+  - Deployed dual independent daemon threads to test a Standard SPA router alongside the CP-SPA router, ensuring zero state-bleed between scenarios.
+  - **Standard SPA Vulnerability:** Demonstrated that an attacker holding only the stolen AES-256 key can successfully hand-craft a JSON payload, spoof the hardware assertion, and breach the firewall (approx. 300ms time-to-breach).
+  - **CP-SPA Resilience:** Proved that hijacking the legitimate edge-controller software fails entirely. The `PhysicalGate` evaluation accurately detects the absence of human interaction, hard-blocks the AES encryption process, and transmits zero bytes to the network.
