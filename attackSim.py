@@ -50,12 +50,12 @@ class AdversarialML_Attacker:
         start = time.perf_counter()
 
         forgedPayload = {
-            "clientId": "edge-controller-01", 
+            "client_id": "edge-controller-01", 
             "timestamp": time.time(),
             "nonce": os.urandom(8).hex(),
             "gate": True,  # THE_HACK
         }
-        simPrint("*", f"MALWARE: Forging payload for '{forgedPayload['clientId']}'")
+        simPrint("*", f"MALWARE: Forging payload for '{forgedPayload['client_id']}'")
 
         wireBytes = self._encrypt(forgedPayload)
         simPrint("*", f"MALWARE: Wrapping with AES-GCM envelope ({len(wireBytes)} bytes)")
