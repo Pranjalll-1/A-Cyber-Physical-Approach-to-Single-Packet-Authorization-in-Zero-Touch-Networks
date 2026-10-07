@@ -60,3 +60,9 @@ python -m pip install cryptography numpy matplotlib
 #2. Run the latency checks
 python3 latency_eval.py
 ```
+
+### Phase 6 Empirical Results
+
+![End-to-End Latency](fig1_latency_boxplot.png)
+![Component Breakdown](fig2_cpspa_breakdown.png)
+![Latency Distribution](fig3_latency_distribution.png)
