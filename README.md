@@ -1,41 +1,62 @@
-# A Cyber-Physical Approach to Single Packet Authorization in Zero-Touch Networks
+# A Cyber-Physical Approach to Single Packet Authorization in Zero-Touch Networks (CP-SPA)
 
 ## Abstract
 
-Mission-critical networks require robust cybersecurity without the burden of heavy device patching. While Single Packet Authorization (SPA) effectively conceals network ports, purely software-based SPA remains vulnerable to stolen digital keys. Furthermore, automated Zero-Touch Networks (ZTNs) are highly susceptible to Adversarial Machine Learning (AML) manipulation.
+Mission-critical networks require robust cybersecurity without the burden of heavy device patching[cite: 3]. While Single Packet Authorization (SPA) effectively conceals network ports, purely software-based SPA remains vulnerable to stolen digital keys[cite: 3]. Furthermore, automated Zero-Touch Networks (ZTNs) are highly susceptible to Adversarial Machine Learning (AML) manipulation[cite: 3].
 
-To achieve strict micro-segmentation and "never trust" principles, we propose a Cyber-Physical Single Packet Authorization (CP-SPA) framework. This system requires a verifiable physical action—a dual-sensor "knock" at an edge controller—to dispatch an out-of-band authorization payload. An automated validation engine then dynamically updates the router’s Access Control List (ACL) to open a temporary micro-segment. By tying network authorization to a physical action, this framework neutralizes remote replay attacks, bypasses AML evasion, and establishes a highly resilient zero-trust perimeter.
+This project introduces Cyber-Physical Single Packet Authorization (CP-SPA)[cite: 3]. It ports the FIDO2/WebAuthn User Presence Verification (UPV) primitive to the network firewall layer[cite: 1]. CP-SPA anchors cryptographic trust to live human presence rather than device identity[cite: 1]. A physical hardware gate (dual-sensor knock) must be activated to generate the AES-256-GCM payload[cite: 3]. This neutralizes remote replay attacks, bypasses AML evasion, and hard-blocks memory-scraping exploits[cite: 3].
 
-## Project Architecture
+## File Structure
 
-- **Network Core:** Cisco 2911 Router and 2960 Switch establishing a local subnet.
-- **Edge Controller:** A Single Board Computer (SBC) serving as the hardware authorization gate.
-- **Cyber-Physical Sensors:** Push button and toggle switch acting as a dual-sensor physical "knock" mechanism.
-- **Security Posture:** Default-deny Access Control List (ACL) blocking all remote access until physical verification is achieved.
+- `spaConfig.py`: Shared cryptographic configuration establishing a 256-bit AES-GCM pre-shared key, strict 5-second anti-replay windows, and an 8-second self-healing firewall duration[cite: 3].
+- `spaServer.py`: The Zero-Touch Network stealth router operating in a strict default-drop posture[cite: 3].
+- `spaClient.py`: The edge controller built with a mathematically simulated hardware logic gate[cite: 3].
+- `attackSim.py`: Standalone adversarial simulation empirically validating the hardware-gated defense against zero-day/memory-scraping intrusions[cite: 3].
+- `latency_eval.py`: Phase 6 empirical latency benchmarking script that simulates 1000 trials to measure the overhead of hardware-gated authorization.
+
+## Mathematical Security Guarantees
+
+1. **Galois Field GF(2^128) Authentication:** SPA payload confidentiality and integrity are secured via AES-256-GCM[cite: 1]. The authentication tag is a polynomial evaluation over GF(2^128) using the reduction polynomial $f(x) = x^{128} + x^7 + x^2 + x + 1$[cite: 1].
+2. **Replay Defense (Birthday Paradox):** The architecture utilizes a dynamically generated 96-bit nonce[cite: 1]. For $10^6$ authorization requests, the nonce collision probability is bounded by the Birthday Paradox at $6.33 \times 10^{-18}$, preventing Joux's Forbidden Attack[cite: 1].
+3. **Attack Surface Decoupling:** In Standard SPA, breach probability relies strictly on key secrecy: $P(\text{Breach}) = P(K_{\text{compromised}})$[cite: 1]. In CP-SPA, network authorization is decoupled from the software state: $P(\text{Breach}) = P(K_{\text{compromised}}) \times P(S_{\text{phys}} = 1 \mid \text{Remote Exploit})$[cite: 1]. Because the physical sensors cannot be actuated remotely, $P(S_{\text{phys}} = 1 \mid \text{Remote Exploit}) = 0$, reducing the remote breach probability to absolute zero[cite: 1].
+
+## Threat Model Matrix
+
+| Threat Vector                      | Standard SPA (Software) | CP-SPA (Hardware-Gated) | Defense Boundary / Mitigation                         |
+| :--------------------------------- | :---------------------- | :---------------------- | :---------------------------------------------------- |
+| **Network Sniffing / Replay**      | Defended                | **Defended**            | AES-256-GCM + 96-bit Nonce[cite: 1]                   |
+| **Remote Memory Scraping**         | Breached                | **Defended**            | Payload generation physically inhibited[cite: 3]      |
+| **Adversarial ML Evasion**         | Breached                | **Defended**            | Deterministic physical logic overrides ML[cite: 3]    |
+| **Direct Voltage Trace Tampering** | Vulnerable              | **Acknowledged**        | Requires physical tamper-evident enclosure[cite: 1]   |
+| **UDP Inbound Flooding (DoS)**     | Susceptible             | **Acknowledged**        | Standard default-DROP rate-limiting required[cite: 4] |
 
 ## Progress Tracker
 
-- **August 26, 2026 - Session 1: Network Foundation & Zero-Trust Perimeter**
-  - Placed and wired all network devices and IoT sensors in Cisco Packet Tracer.
-  - Configured static IPv4 addressing across the local subnet.
-  - Generated 2048-bit RSA keys and locked down the central router with a strict `DENY ALL` ACL.
-  - Verified baseline connectivity (Ping) and confirmed the firewall actively blocks unauthorized SSH attempts.
+- **Phase 1 & 2 (August 2026): Network Foundation**
+  - Placed and wired all network devices and IoT sensors in Cisco Packet Tracer[cite: 3].
+  - Configured static IPv4 addressing across the local subnet and locked the router down with a strict `DENY ALL` ACL[cite: 3].
+- **Phase 3 (August 2026): Hardware Simulation Pivot**
+  - Finalized the Single Board Computer (SBC) logic gate, mapping physical interactions to logical outputs[cite: 3].
+  - Pivoted from Packet Tracer to CPython due to Skulpt engine socket limitations[cite: 3].
+- **Phase 4 (August 2026): CP-SPA Architecture**
+  - Developed `spaConfig.py`, `spaServer.py`, and `spaClient.py`[cite: 3].
+  - Enforced causal dependency by hard-blocking digital payload generation unless physical sensor authorization is simultaneously achieved[cite: 3].
+- **Phase 5 (September 2026): Adversarial Simulation**
+  - Developed `attackSim.py` to empirically validate the defense[cite: 3].
+  - Proved Standard SPA is breached in ~300ms if the AES key is stolen[cite: 3]. Proved CP-SPA yields exactly 0 bytes of network egress under the identical threat model[cite: 3].
+- **Phase 6 (October 2026): Empirical Benchmarking**
+  - Developed `latency_eval.py` to simulate 1000 trials measuring the overhead of hardware-gated authorization[cite: 6].
+  - Isolated $t_{\text{GPIO}}$, $t_{\text{crypto}}$, and $t_{\text{network}}$ metrics[cite: 4].
+  - Generated statistical distribution graphs (Median, p95, p99) demonstrating the hardware check introduces statistically negligible overhead to the firewall ACL opening sequence[cite: 1, 4].
 
-- **August 29, 2026 - Session 3: Hardware Authentication & Simulation Boundaries**
-  - Finalized the Single Board Computer (SBC) logic gate, successfully mapping physical end-device interactions (Toggle Switch + Push Button) to logical outputs.
-  - **Architectural Constraint Identified:** Cisco Packet Tracer's internal Python engine (Skulpt) restricts the execution of advanced networking libraries. Attempting to deploy the UDP payload generation resulted in: `NotImplementedError: socket is not yet implemented in Skulpt`.
-  - **Review-1 Pivot & Strategy:** Due to the simulator's inability to compile raw network sockets, the physical LED on `D3` now acts as the visual proxy for the SPA payload dispatch.
-  - **Next Phase Roadmap:** While the Packet Tracer topology serves as the visual proof of the Cyber-Physical framework for Review-1, the final benchmarking phase (measuring resilience against Adversarial Machine Learning) will utilize an external Python environment to generate the necessary network packets and data graphs.
+## Execution and Benchmarking
 
-- **August 31, 2026 - Session 4: CP-SPA Baseline Architecture & Cryptographic Implementation**
-  - Transitioned from Packet Tracer's Skulpt engine to a standard CPython environment to bypass network socket limitations and implement the core cryptography.
-  - Developed the shared cryptographic configuration (`spaConfig.py`), establishing a 256-bit AES-GCM pre-shared key, strict 5-second anti-replay windows, and an 8-second self-healing firewall duration.
-  - Implemented the ZTN Router (`spaServer.py`) to operate in a strict default-drop posture, listening silently on a dormant UDP port to intercept, decrypt, and validate incoming SPA payloads.
-  - Built the Edge Controller client (`spaClient.py`) with a mathematically simulated hardware logic gate. Enforced causal dependency by hard-blocking digital payload generation unless physical sensor authorization is simultaneously achieved.
-  - Successfully executed and validated the CP-SPA handshake on the local testbed, proving the router can dynamically update its Access Control List (ACL) upon verifiable physical interaction.
+To run the automated empirical latency benchmarks locally:
 
-- **September 1, 2026 - Session 5: Adversarial Machine Learning (AML) Attack Simulation**
-  - Developed a standalone attack simulation (`attackSim.py`) to empirically validate the hardware-gated defense against a modeled zero-day/memory-scraping intrusion.
-  - Deployed dual independent daemon threads to test a Standard SPA router alongside the CP-SPA router, ensuring zero state-bleed between scenarios.
-  - **Standard SPA Vulnerability:** Demonstrated that an attacker holding only the stolen AES-256 key can successfully hand-craft a JSON payload, spoof the hardware assertion, and breach the firewall (approx. 300ms time-to-breach).
-  - **CP-SPA Resilience:** Proved that hijacking the legitimate edge-controller software fails entirely. The `PhysicalGate` evaluation accurately detects the absence of human interaction, hard-blocks the AES encryption process, and transmits zero bytes to the network.
+```bash
+# 1. Install required dependencies
+python -m pip install cryptography numpy matplotlib
+
+#2. Run the latency checks
+python3 latency_eval.py
+```
